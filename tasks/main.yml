@@ -23,7 +23,7 @@
       creates: /etc/openvpn/server.conf.orig
 
 - name: put config files
-  template: src=templates/{{ item.file }} dest=/etc/{{ item.file }} mode={{ item.mode }}
+  template: src={{ item.file }} dest=/etc/{{ item.file }} mode={{ item.mode }}
   with_items:
     - { file: openvpn/easy-rsa/vars         , mode: 644 }
     - { file: openvpn/easy-rsa/message.txt  , mode: 644 }
