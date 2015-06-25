@@ -1,0 +1,6 @@
+---
+- name: reload openvpn
+  service: name=openvpn state=reloaded
+
+- name: openvpn reload
+  service: name=openvpn state=reloaded

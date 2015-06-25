@@ -1,0 +1,73 @@
+---
+- name: install openvpn
+  apt: name={{ item }}
+  with_items:
+      - openvpn
+      - libssl-dev
+      - openssl
+      - zip
+      - easy-rsa
+
+- name: create easy-rsa dir
+  command: make-cadir /etc/openvpn/easy-rsa
+  args:
+    creates: /etc/openvpn/easy-rsa
+
+- name: Set ip forwarding
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present
+
+- name: preserve original openvpn conf
+  command: cp -v server.conf server.conf.orig
+  args:
+      chdir: /etc/openvpn/
+      creates: /etc/openvpn/server.conf.orig
+
+- name: put config files
+  template: src=templates/{{ item.file }} dest=/etc/{{ item.file }} mode={{ item.mode }}
+  with_items:
+    - { file: openvpn/easy-rsa/vars         , mode: 644 }
+    - { file: openvpn/easy-rsa/message.txt  , mode: 644 }
+    - { file: openvpn/server.conf           , mode: 644 }
+    - { file: openvpn/easy-rsa/client.ovpn  , mode: 644 }
+    - { file: openvpn/easy-rsa/nc.sh        , mode: 755 }
+    - { file: openvpn/up.sh                 , mode: 755 }
+    - { file: openvpn/down.sh               , mode: 755 }
+  notify: reload openvpn
+  tags:
+    - vpn
+
+- name: create key dir
+  file: dest=/etc/openvpn/easy-rsa/keys state=directory
+  tags:
+      - vpn
+
+- name: generate keys
+  shell: bash -c "source vars && {{ item.rcmd }}"
+  #"
+  args:
+      chdir:   "/etc/openvpn/easy-rsa/"
+      creates: "/etc/openvpn/easy-rsa/keys/{{ item.out }}"
+  with_items:
+      - { rcmd: ./clean-all                           , out: 'index.txt' }
+      - { rcmd: ./build-dh                            , out: 'dh2048.pem' }
+      - { rcmd: ./pkitool --initca                    , out: 'ca.crt'     }
+      - { rcmd: ./pkitool --server server             , out: 'server.csr' }
+      - { rcmd: openvpn --genkey --secret keys/ta.key , out: 'ta.key'     }
+  tags:
+      - vpn
+
+- name: copy keys
+  command: cp -v /etc/openvpn/easy-rsa/keys/{{ item }} /etc/openvpn/{{ item }}
+  args:
+      creates: "/etc/openvpn/{{ item }}"
+  with_items:
+      - server.crt
+      - server.key
+      - ca.crt
+      - dh2048.pem
+      - ta.key
+  tags: vpn
+
+- name: start openvpn
+  service: name=openvpn state=started
+  tags: vpn
