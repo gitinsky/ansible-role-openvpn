@@ -16,12 +16,6 @@
 - name: Set ip forwarding
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present
 
-- name: preserve original openvpn conf
-  command: cp -v server.conf server.conf.orig
-  args:
-      chdir: /etc/openvpn/
-      creates: /etc/openvpn/server.conf.orig
-
 - name: put config files
   template: src={{ item.file }} dest=/etc/{{ item.file }} mode={{ item.mode }}
   with_items:
