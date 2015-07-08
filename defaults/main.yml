@@ -2,3 +2,4 @@ openvpn_network_addr: "10.{{ ansible_default_ipv4.address.split('.')[1] }}.{{ an
 openvpn_network_mask: 255.255.255.0
 openvpn_networks: []
 openvpn_push_dns: []
+openvpn_domains:  []
