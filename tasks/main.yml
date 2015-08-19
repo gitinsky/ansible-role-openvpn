@@ -1,12 +1,24 @@
 ---
 - name: install openvpn
-  apt: name={{ item }}
+  apt: name={{ item }} update_cache=yes cache_valid_time=86400
   with_items:
       - openvpn
       - libssl-dev
       - openssl
       - zip
-      - easy-rsa
+
+- name: install easy-rsa
+  apt: name=easy-rsa
+  when: ansible_distribution_version|version_compare(14.04, '>=')
+
+- name: create /etc/openvpn/easy-rsa/
+  file: state=directory dest=/etc/openvpn/easy-rsa/
+  when: ansible_distribution_version|version_compare(12.04, '<=')
+  
+- name: create /etc/openvpn/easy-rsa/
+  shell: cp -R /usr/share/doc/openvpn/examples/easy-rsa/2.0/* /etc/openvpn/easy-rsa/
+         creates=/etc/openvpn/easy-rsa/vars
+  when: ansible_distribution_version|version_compare(12.04, '<=')
 
 - name: create easy-rsa dir
   command: make-cadir /etc/openvpn/easy-rsa
@@ -16,11 +28,16 @@
 - name: Set ip forwarding
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present
 
+- name: collect server.conf stat
+  stat: path=/etc/openvpn/server.conf
+  register: stat
+
 - name: preserve original openvpn conf
   command: cp -v server.conf server.conf.orig
   args:
       chdir: /etc/openvpn/
       creates: /etc/openvpn/server.conf.orig
+  when: p.stat.isreg is defined and p.stat.isreg
 
 - name: put config files
   template: src={{ item.file }} dest=/etc/{{ item.file }} mode={{ item.mode }}
