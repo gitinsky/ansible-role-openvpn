@@ -1,6 +1,6 @@
 ---
 - name: reload openvpn
-  service: name=openvpn state=reloaded
+  service: name={{ 'openvpn@server' if ansible_service_mgr == 'systemd' else 'openvpn' }} state=reloaded
 
 - name: openvpn reload
-  service: name=openvpn state=reloaded
+  service: name={{ 'openvpn@server' if ansible_service_mgr == 'systemd' else 'openvpn' }} state=reloaded
