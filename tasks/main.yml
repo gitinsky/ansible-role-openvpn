@@ -30,7 +30,7 @@
 
 - name: collect server.conf stat
   stat: path=/etc/openvpn/server.conf
-  register: stat
+  register: p
 
 - name: preserve original openvpn conf
   command: cp -v server.conf server.conf.orig
