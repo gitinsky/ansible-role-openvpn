@@ -7,3 +7,5 @@ openvpn_access_address: "{{ ansible_default_ipv4.address }}"
 openvpn_name: "{{ openvpn_access_address }}"
 openvpn_listen_port: 1194
 openvpn_dev: tun
+openvpn_proto: udp
+openvpn_use_updown_scripts: true
