@@ -3,3 +3,7 @@ openvpn_network_mask: 255.255.255.0
 openvpn_networks: []
 openvpn_push_dns: []
 openvpn_domains:  []
+openvpn_access_address: "{{ ansible_default_ipv4.address }}"
+openvpn_name: "{{ openvpn_access_address }}"
+openvpn_listen_port: 1194
+openvpn_dev: tun
